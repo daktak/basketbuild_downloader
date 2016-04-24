@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory android:title="@string/settings" >
+        <EditTextPreference
+            android:title="@string/project"
+            android:summary="@string/project_sum"
+            android:defaultValue="@string/project_val"
+            android:key="prefProject"/>
+        <EditTextPreference
+            android:title="@string/device"
+            android:summary="@string/device_sum"
+            android:defaultValue="@string/device_val"
+            android:key="prefDevice"/>
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/adv_set">
+        <EditTextPreference
+            android:title="@string/base_url"
+            android:summary="@string/base_sum"
+            android:defaultValue="@string/base_val"
+            android:key="prefBase"/>
+        <EditTextPreference
+            android:title="@string/directory"
+            android:summary="@string/directory_sum"
+            android:defaultValue=""
+            android:key="prefDirectory"/>
+        <!--
+        <CheckBoxPreference
+            android:title="@string/external_browser"
+            android:summary="@string/external_sum"
+            android:defaultValue="false"
+            android:key="prefExternal" />
+
+        <EditTextPreference
+            android:title="@string/prefix"
+            android:summary="@string/prefix_sum"
+            android:defaultValue="@string/prefix_val"
+            android:key="prefPrefix"/>
+        <EditTextPreference
+            android:title="@string/selector"
+            android:summary="@string/selector_sum"
+            android:defaultValue="@string/selector_val"
+            android:key="prefSelector"/> -->
+    </PreferenceCategory>
+</PreferenceScreen>
