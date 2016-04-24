@@ -18,13 +18,13 @@
             android:title="@string/prefix"
             android:summary="@string/prefix_sum"
             android:defaultValue="@string/prefix_val"
-            android:key="prefPrefix"/>
+            android:key="prefPrefix"/> <!--
         <EditTextPreference
             android:title="@string/directory"
             android:summary="@string/directory_sum"
             android:defaultValue=""
             android:key="prefDirectory"/>
-        <!--
+
 
         <EditTextPreference
             android:title="@string/base_url"
