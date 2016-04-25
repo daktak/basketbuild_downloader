@@ -11,8 +11,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -29,8 +27,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import java.io.IOException;
-import java.lang.reflect.Array;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -40,11 +37,10 @@ public class MainActivity extends AppCompatActivity
         implements EasyPermissions.PermissionCallbacks {
     private static final String LOGTAG = LogUtil
             .makeLogTag(MainActivity.class);
-    String[] perms = {Manifest.permission.INTERNET, Manifest.permission.WRITE_EXTERNAL_STORAGE};
-    private static int RC_INTERNET = 1;
+    String[] perms = {Manifest.permission.WRITE_EXTERNAL_STORAGE};
     private static final int REQUEST_PREFS = 99;
-    private static int RC_EXT_WRITE =2;
-    private static int RC_INT_WRITE =3;
+    private static int RC_EXT_WRITE =1;
+
     private ArrayList<String> urls = new ArrayList<String>();
 
     @Override
@@ -54,23 +50,8 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        if (EasyPermissions.hasPermissions(this, perms)) {
-            // Have permissions, do the thing!
-        } else {
-            // Ask for both permissions
-            EasyPermissions.requestPermissions(this, "needed",
-                    RC_INTERNET, perms);
-        }
         PreferenceManager.setDefaultValues(this, R.xml.settings, false);
 
-
-        //String siteUrl = "https://s.basketbuild.com/devs/aokp/oneplus2/";
-        /*
-        Uri builtUri = Uri.parse(FORECAST_BASE_URL)
-    .buildUpon()
-                .appendPath()
-                .build()*/
-        //
         run(this);
     }
 
@@ -116,28 +97,38 @@ public class MainActivity extends AppCompatActivity
     public void download(String url, String desc, String title, String filename) {
         if (EasyPermissions.hasPermissions(this, perms)) {
             // Have permissions, do the thing!
+
+            DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
+            request.setDescription(desc);
+            request.setTitle(title);
+
+            // in order for this if to run, you must use the android 3.2 to compile your app
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                request.allowScanningByMediaScanner();
+                request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+            }
+            SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+
+            String directory = mySharedPreferences.getString("prefDirectory",Environment.DIRECTORY_DOWNLOADS).trim();
+            if (!(directory.startsWith("/"))) {
+                directory = "/" + directory;
+            }
+            File direct = new File(Environment.getExternalStorageDirectory() + directory);
+
+            if (!direct.exists()) {
+                direct.mkdirs();
+            }
+
+            request.setDestinationInExternalPublicDir(directory, filename);
+
+            // get download service and enqueue file
+            DownloadManager manager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+            manager.enqueue(request);
         } else {
             // Ask for both permissions
             EasyPermissions.requestPermissions(this, "needed",
                     RC_EXT_WRITE, perms);
         }
-        DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
-        request.setDescription(desc);
-        request.setTitle(title);
-
-        // in order for this if to run, you must use the android 3.2 to compile your app
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            request.allowScanningByMediaScanner();
-            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-        }
-        SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        String directory = mySharedPreferences.getString("prefDirectory",Environment.DIRECTORY_DOWNLOADS).trim();
-        request.setDestinationInExternalPublicDir(directory, filename);
-
-
-        // get download service and enqueue file
-        DownloadManager manager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
-        manager.enqueue(request);
     }
 
     @Override
@@ -234,9 +225,9 @@ public class MainActivity extends AppCompatActivity
                 url = prefix+i;
             }
             if (!(url.isEmpty())){
-                int slash = url.lastIndexOf("/")+1;
+                int slash = url.lastIndexOf("/");
                 String filename = url.substring(slash+1);
-                download(url, "desc", filename, filename);
+                download(url, getString(R.string.app_name), filename, filename);
             }
 
         }
@@ -288,7 +279,9 @@ public class MainActivity extends AppCompatActivity
 
               startActivity(intent);
           } else{ */
+
               new ParseURLDownload().execute(new String[]{url.toString()});
+
           //}
 
       }

@@ -1,10 +1,6 @@
 <resources>
     <string name="app_name">BasketBuild Downloader</string>
     <string name="action_settings">Settings</string>
-    <string name="base_val">https://s.basketbuild.com</string>
-    <string name="prefix_val">devs</string>
-    <string name="project_val">aokp</string>
-    <string name="device_val">oneplus2</string>
     <string name="project">Project</string>
     <string name="device">Device</string>
     <string name="project_sum"></string>
@@ -16,8 +12,6 @@
     <string name="prefix">Prefix</string>
     <string name="prefix_sum"></string>
     <string name="selector">Selector</string>
-    <string name="selector_val">a[itemprop=downloadUrl][href$=.zip]</string>
-    <string name="selectorDL_val">a[href$=.zip][class=btn btn-primary][rel=nofollow]</string>
     <string name="selector_sum">JSoup select statement</string>
     <string name="directory">Directory</string>
     <string name="directory_sum">Dir to download to</string>
