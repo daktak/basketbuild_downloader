@@ -6,4 +6,5 @@
     <string name="prefix_val" translatable="false">devs</string>
     <string name="project_val" translatable="false">aokp</string>
     <string name="device_val" translatable="false">oneplus2</string>
+
 </resources>

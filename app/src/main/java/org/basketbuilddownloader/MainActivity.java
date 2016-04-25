@@ -27,7 +27,9 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import java.io.DataOutputStream;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -51,9 +53,9 @@ public class MainActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
 
         PreferenceManager.setDefaultValues(this, R.xml.settings, false);
-        String[] names = new String[] {"Loading..."};
-        ListView mainListView = (ListView) findViewById( R.id.listView );
 
+        String[] names = new String[] {getString(R.string.loading)};
+        ListView mainListView = (ListView) findViewById( R.id.listView );
         ListAdapter listAdapter =  new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, names);
 
         // Set the ArrayAdapter as the ListView's adapter.
@@ -97,12 +99,28 @@ public class MainActivity extends AppCompatActivity
             run(this);
             return true;
         }
+        if (id == R.id.action_reboot) {
+            ExecuteAsRootBase e = new ExecuteAsRootBase() {
+                    @Override
+                    protected ArrayList<String> getCommandsToExecute() {
+                        ArrayList<String> a = new ArrayList<String>();
+                        a.add("reboot recovery");
+                        return a;
+                    }
+                };
+            e.execute();
+            return true;
+        }
 
         return super.onOptionsItemSelected(item);
     }
 
     public void download(String url, String desc, String title, String filename) {
-        if (EasyPermissions.hasPermissions(this, perms)) {
+
+        SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        boolean external = mySharedPreferences.getBoolean("prefExternal",false);
+
+        if (!(external) &&  (EasyPermissions.hasPermissions(this, perms))) {
             // Have permissions, do the thing!
 
             DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
@@ -114,7 +132,7 @@ public class MainActivity extends AppCompatActivity
                 request.allowScanningByMediaScanner();
                 request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
             }
-            SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+            //SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
             String directory = mySharedPreferences.getString("prefDirectory",Environment.DIRECTORY_DOWNLOADS).trim();
             if (!(directory.startsWith("/"))) {
@@ -125,7 +143,15 @@ public class MainActivity extends AppCompatActivity
             if (!direct.exists()) {
                 direct.mkdirs();
             }
-
+            boolean wifionly = mySharedPreferences.getBoolean("prefWIFI",true);
+            //Restrict the types of networks over which this download may proceed.
+            if (wifionly) {
+                request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI);
+            } else{
+                request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI | DownloadManager.Request.NETWORK_MOBILE);
+            }
+            //Set whether this download may proceed over a roaming connection.
+            request.setAllowedOverRoaming(false);
             request.setDestinationInExternalPublicDir(directory, filename);
 
             // get download service and enqueue file
@@ -301,4 +327,54 @@ public class MainActivity extends AppCompatActivity
 
     });
     }
+
+    	/**
+	 * Executes commands as root user
+	 * @author http://muzikant-android.blogspot.com/2011/02/how-to-get-root-access-and-execute.html
+	 */
+	public abstract class ExecuteAsRootBase {
+	  public final boolean execute() {
+	    boolean retval = false;
+	    try {
+	      ArrayList<String> commands = getCommandsToExecute();
+	      if (null != commands && commands.size() > 0) {
+	        Process suProcess = Runtime.getRuntime().exec("su");
+
+	        DataOutputStream os = new DataOutputStream(suProcess.getOutputStream());
+
+	        // Execute commands that require root access
+	        for (String currCommand : commands) {
+	          os.writeBytes(currCommand + "\n");
+	          os.flush();
+	        }
+
+	        os.writeBytes("exit\n");
+	        os.flush();
+
+	        try {
+	          int suProcessRetval = suProcess.waitFor();
+	          if (255 != suProcessRetval) {
+	            // Root access granted
+	            retval = true;
+	          } else {
+	            // Root access denied
+	            retval = false;
+	          }
+	        } catch (Exception ex) {
+	          Log.e("Error executing root action", ex.toString());
+	        }
+	      }
+	    } catch (IOException ex) {
+	      Log.w("ROOT", "Can't get root access", ex);
+	    } catch (SecurityException ex) {
+	      Log.w("ROOT", "Can't get root access", ex);
+	    } catch (Exception ex) {
+	      Log.w("ROOT", "Error executing internal operation", ex);
+	    }
+
+	    return retval;
+	  }
+
+	  protected abstract ArrayList<String> getCommandsToExecute();
+	}
 }
