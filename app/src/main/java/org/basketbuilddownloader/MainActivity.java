@@ -51,6 +51,13 @@ public class MainActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
 
         PreferenceManager.setDefaultValues(this, R.xml.settings, false);
+        String[] names = new String[] {"Loading..."};
+        ListView mainListView = (ListView) findViewById( R.id.listView );
+
+        ListAdapter listAdapter =  new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, names);
+
+        // Set the ArrayAdapter as the ListView's adapter.
+        mainListView.setAdapter( listAdapter );
 
         run(this);
     }
@@ -126,8 +133,13 @@ public class MainActivity extends AppCompatActivity
             manager.enqueue(request);
         } else {
             // Ask for both permissions
-            EasyPermissions.requestPermissions(this, "needed",
-                    RC_EXT_WRITE, perms);
+            //EasyPermissions.requestPermissions(this, "needed",
+            //        RC_EXT_WRITE, perms);
+            //otherwise use app
+            Intent intent = new Intent( Intent.ACTION_VIEW, Uri.parse(url));
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+            startActivity(intent);
         }
     }
 
@@ -257,6 +269,7 @@ public class MainActivity extends AppCompatActivity
         Collections.reverse(names);
         // Find the ListView resource.
         ListView mainListView = (ListView) findViewById( R.id.listView );
+
         ListAdapter listAdapter =  new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, names);
 
         // Set the ArrayAdapter as the ListView's adapter.
