@@ -18,7 +18,7 @@
     <string name="directory_sum">Dir to download to</string>
     <string name="external_browser">External Browser</string>
     <string name="external_sum">Use external browser for download</string>
-    <string name="loading">Loading...</string>
+    <string name="loading">Loading&#8230;</string>
     <string name="wifionly">WIFI Only</string>
     <string name="wifi_sum">Download only over WIFI</string>
 </resources>

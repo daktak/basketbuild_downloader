@@ -361,15 +361,15 @@ public class MainActivity extends AppCompatActivity
 	            retval = false;
 	          }
 	        } catch (Exception ex) {
-	          Log.e("Error executing root action", ex.toString());
+	          Log.e(LOGTAG, "Error executing root action\n"+ ex.toString());
 	        }
 	      }
 	    } catch (IOException ex) {
-	      Log.w("ROOT", "Can't get root access", ex);
+	      Log.w(LOGTAG, "Can't get root access", ex);
 	    } catch (SecurityException ex) {
-	      Log.w("ROOT", "Can't get root access", ex);
+	      Log.w(LOGTAG, "Can't get root access", ex);
 	    } catch (Exception ex) {
-	      Log.w("ROOT", "Error executing internal operation", ex);
+	      Log.w(LOGTAG, "Error executing internal operation", ex);
 	    }
 
 	    return retval;
