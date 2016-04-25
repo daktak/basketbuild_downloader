@@ -21,4 +21,6 @@
     <string name="loading">Loading&#8230;</string>
     <string name="wifionly">WIFI Only</string>
     <string name="wifi_sum">Download only over WIFI</string>
+    <string name="extWritePerm">External write permission required download file.</string>
+    <string name="extReadPerm">External read permission required to identify existing downloads.</string>
 </resources>

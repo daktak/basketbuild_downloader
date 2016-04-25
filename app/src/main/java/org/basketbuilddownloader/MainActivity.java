@@ -40,8 +40,10 @@ public class MainActivity extends AppCompatActivity
     private static final String LOGTAG = LogUtil
             .makeLogTag(MainActivity.class);
     String[] perms = {Manifest.permission.WRITE_EXTERNAL_STORAGE};
+    String[] perms2 = {Manifest.permission.READ_EXTERNAL_STORAGE};
     private static final int REQUEST_PREFS = 99;
-    private static int RC_EXT_WRITE =1;
+    private static final int RC_EXT_WRITE =1;
+    private static final int RC_EXT_READ=2;
 
     private ArrayList<String> urls = new ArrayList<String>();
 
@@ -120,52 +122,74 @@ public class MainActivity extends AppCompatActivity
         SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         boolean external = mySharedPreferences.getBoolean("prefExternal",false);
 
-        if (!(external) &&  (EasyPermissions.hasPermissions(this, perms))) {
-            // Have permissions, do the thing!
-
-            DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
-            request.setDescription(desc);
-            request.setTitle(title);
-
-            // in order for this if to run, you must use the android 3.2 to compile your app
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                request.allowScanningByMediaScanner();
-                request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-            }
-            //SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-
-            String directory = mySharedPreferences.getString("prefDirectory",Environment.DIRECTORY_DOWNLOADS).trim();
-            if (!(directory.startsWith("/"))) {
-                directory = "/" + directory;
-            }
-            File direct = new File(Environment.getExternalStorageDirectory() + directory);
-
-            if (!direct.exists()) {
-                direct.mkdirs();
-            }
-            boolean wifionly = mySharedPreferences.getBoolean("prefWIFI",true);
-            //Restrict the types of networks over which this download may proceed.
-            if (wifionly) {
-                request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI);
-            } else{
-                request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI | DownloadManager.Request.NETWORK_MOBILE);
-            }
-            //Set whether this download may proceed over a roaming connection.
-            request.setAllowedOverRoaming(false);
-            request.setDestinationInExternalPublicDir(directory, filename);
-
-            // get download service and enqueue file
-            DownloadManager manager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
-            manager.enqueue(request);
-        } else {
+        if (!(EasyPermissions.hasPermissions(this, perms))) {
             // Ask for both permissions
-            //EasyPermissions.requestPermissions(this, "needed",
-            //        RC_EXT_WRITE, perms);
+            EasyPermissions.requestPermissions(this, getString(R.string.extWritePerm), RC_EXT_WRITE, perms);
             //otherwise use app
-            Intent intent = new Intent( Intent.ACTION_VIEW, Uri.parse(url));
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        }
+        if (!(EasyPermissions.hasPermissions(this, perms2))) {
+            // Ask for both permissions
+            EasyPermissions.requestPermissions(this, getString(R.string.extReadPerm), RC_EXT_READ, perms2);
+            //otherwise use app
+        }
 
-            startActivity(intent);
+        String directory = mySharedPreferences.getString("prefDirectory",Environment.DIRECTORY_DOWNLOADS).trim();
+        if (!(directory.startsWith("/"))) {
+            directory = "/" + directory;
+        }
+        File direct = new File(Environment.getExternalStorageDirectory() + directory);
+
+        if (!direct.exists()) {
+            direct.mkdirs();
+        }
+        boolean fileExists = false;
+
+        //check to see if we already have the file
+        //this will make scheduling better
+        if (EasyPermissions.hasPermissions(this, perms2)) {
+            //have to assume we want to download the file if we can't check the dir
+            File f = new File(direct.getAbsolutePath());
+            File file[] = f.listFiles();
+            for (int i = 0; i < file.length; i++) {
+                if (filename.equals(file[i].getName())) {
+                    fileExists = true;
+                    Log.d(LOGTAG,filename+" exists");
+                }
+            }
+        }
+
+        if (!fileExists) {
+            if (external) {
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+                startActivity(intent);
+            } else if (EasyPermissions.hasPermissions(this, perms)) {
+                DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
+                request.setDescription(desc);
+                request.setTitle(title);
+
+                // in order for this if to run, you must use the android 3.2 to compile your app
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                    request.allowScanningByMediaScanner();
+                    request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                }
+
+                boolean wifionly = mySharedPreferences.getBoolean("prefWIFI", true);
+                //Restrict the types of networks over which this download may proceed.
+                if (wifionly) {
+                    request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI);
+                } else {
+                    request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI | DownloadManager.Request.NETWORK_MOBILE);
+                }
+                //Set whether this download may proceed over a roaming connection.
+                request.setAllowedOverRoaming(false);
+                request.setDestinationInExternalPublicDir(directory, filename);
+
+                // get download service and enqueue file
+                DownloadManager manager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+                manager.enqueue(request);
+            }
         }
     }
 
@@ -192,7 +216,7 @@ public class MainActivity extends AppCompatActivity
 
         @Override
         protected String doInBackground(String... strings) {
-            Log.w(LOGTAG, strings[0]);
+            Log.d(LOGTAG, "Fetch: "+strings[0]);
             ArrayList<String> urls = new ArrayList<String>();
             try {
 
@@ -205,7 +229,7 @@ public class MainActivity extends AppCompatActivity
                     urls.add(link.attr("href"));
                 }
             } catch (Throwable t) {
-                t.printStackTrace();
+                Log.e(LOGTAG,t.getMessage());
             }
 
             return urls.toString();
@@ -228,7 +252,7 @@ public class MainActivity extends AppCompatActivity
 
         @Override
         protected String doInBackground(String... strings) {
-            Log.w(LOGTAG, strings[0]);
+            Log.d(LOGTAG, "Download parse: " +strings[0]);
             ArrayList<String> urls = new ArrayList<String>();
             try {
 
@@ -241,7 +265,7 @@ public class MainActivity extends AppCompatActivity
                     urls.add(link.attr("href"));
                 }
             } catch (Throwable t) {
-                t.printStackTrace();
+                Log.e(LOGTAG,t.getMessage());
             }
 
             return urls.toString();
@@ -255,7 +279,6 @@ public class MainActivity extends AppCompatActivity
             List<String> array = Arrays.asList(newS.split(","));
             String url ="";
             for (String i : array) {
-                Log.w(LOGTAG,i);
                 String prefix = "";
                 if (!(i.startsWith("http"))) {
                     prefix = getString(R.string.base_val)+"/";
@@ -265,6 +288,7 @@ public class MainActivity extends AppCompatActivity
             if (!(url.isEmpty())){
                 int slash = url.lastIndexOf("/");
                 String filename = url.substring(slash+1);
+                Log.d(LOGTAG, "Downloading: "+url);
                 download(url, getString(R.string.app_name), filename, filename);
             }
 
@@ -274,21 +298,47 @@ public class MainActivity extends AppCompatActivity
     public void setList(List<String> values)  {
         ArrayList<String> names = new ArrayList<String>();
 
-
         for (String i : values) {
             i = i.trim();
             int slash = i.lastIndexOf("/")+1;
             try {
-                names.add(i.substring(slash));
+                String filename = i.substring(slash);
+                SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+                String directory = mySharedPreferences.getString("prefDirectory",Environment.DIRECTORY_DOWNLOADS).trim();
+                if (!(directory.startsWith("/"))) {
+                    directory = "/" + directory;
+                }
+                File direct = new File(Environment.getExternalStorageDirectory() + directory);
+
+                if (!direct.exists()) {
+                    direct.mkdirs();
+                }
+                if (EasyPermissions.hasPermissions(this, perms2)) {
+                    File f = new File(direct.getAbsolutePath());
+                    File file[] = f.listFiles();
+                    for (int j = 0; j < file.length; j++) {
+                        if (filename.equals(file[j].getName())) {
+                            Log.d(LOGTAG,filename+" exists");
+                            filename += " Have";
+                        }
+                    }
+                }
+
+                names.add(filename);
             } catch (Exception e){
+                Log.w(LOGTAG, "Cant find slash in "+i);
                 names.add(i);
             }
+
+
             String prefix = "";
             if (!(i.startsWith("http"))) {
                 SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
                 prefix = mySharedPreferences.getString("prefBase",getString(R.string.base_val)).trim()+"/";
             }
             urls.add(prefix+i);
+
+
         }
         //newest on top
         Collections.reverse(urls);
