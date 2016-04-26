@@ -1,7 +1,10 @@
 package org.basketbuilddownloader;
 
 import android.Manifest;
+import android.app.AlarmManager;
 import android.app.DownloadManager;
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -32,8 +35,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
+import java.util.TimeZone;
 
 public class MainActivity extends AppCompatActivity
         implements EasyPermissions.PermissionCallbacks {
@@ -44,6 +49,7 @@ public class MainActivity extends AppCompatActivity
     private static final int REQUEST_PREFS = 99;
     private static final int RC_EXT_WRITE =1;
     private static final int RC_EXT_READ=2;
+    public static MainActivity instance = null;
 
     private ArrayList<String> urls = new ArrayList<String>();
 
@@ -59,14 +65,76 @@ public class MainActivity extends AppCompatActivity
         String[] names = new String[] {getString(R.string.loading)};
         ListView mainListView = (ListView) findViewById( R.id.listView );
         ListAdapter listAdapter =  new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, names);
-
         // Set the ArrayAdapter as the ListView's adapter.
         mainListView.setAdapter( listAdapter );
 
+        if (!(EasyPermissions.hasPermissions(this, perms))) {
+            // Ask for both permissions
+            EasyPermissions.requestPermissions(this, getString(R.string.extWritePerm), RC_EXT_WRITE, perms);
+            //otherwise use app
+        }
+
+        if (!(EasyPermissions.hasPermissions(this, perms2))) {
+            // Ask for both permissions
+            EasyPermissions.requestPermissions(this, getString(R.string.extReadPerm), RC_EXT_READ, perms2);
+            //otherwise use app
+        }
+
+        setAlarm(this);
         run(this);
+
+    }
+
+    public void setAlarm(Context context){
+        SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        boolean daily = mySharedPreferences.getBoolean("prefDailyDownload",false);
+        if (daily) {
+            Log.d(LOGTAG, "Setting daily alarm");
+            setRecurringAlarm(context);
+        } else {
+            CancelAlarm(context);
+        }
+    }
+    public void setRecurringAlarm(Context context) {
+
+        SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        int hour =  Integer.parseInt(mySharedPreferences.getString("prefHour", getString(R.string.hour_val)));
+        int minute = Integer.parseInt(mySharedPreferences.getString("prefMinute", getString(R.string.minute_val)));
+        Calendar updateTime = Calendar.getInstance();
+        //updateTime.setTimeZone(TimeZone.getTimeZone("GMT"));
+        updateTime.set(Calendar.HOUR_OF_DAY, hour);
+        updateTime.set(Calendar.MINUTE, minute);
+
+        Intent downloader = new Intent(context, AlarmReceiver.class);
+        PendingIntent recurringDownload = PendingIntent.getBroadcast(context,
+                0, downloader, PendingIntent.FLAG_CANCEL_CURRENT);
+        AlarmManager alarms = (AlarmManager) getSystemService(
+                Context.ALARM_SERVICE);
+        alarms.setInexactRepeating(AlarmManager.RTC_WAKEUP,
+                updateTime.getTimeInMillis(),
+                AlarmManager.INTERVAL_DAY, recurringDownload);
+
+    }
+
+    public void CancelAlarm(Context context)
+    {
+        Intent downloader = new Intent(context, AlarmReceiver.class);
+        PendingIntent recurringDownload = PendingIntent.getBroadcast(context,
+                0, downloader, PendingIntent.FLAG_CANCEL_CURRENT);
+        AlarmManager alarms = (AlarmManager) getSystemService(
+                Context.ALARM_SERVICE);
+        alarms.cancel(recurringDownload);
     }
 
     public void run(Context context) {
+        //new ParseURL().execute(new String[]{buildPath(context)});
+        Intent service = new Intent(context, Download.class);
+        service.putExtra("url",buildPath(context));
+        service.putExtra("action",1);
+        context.startService(service);
+    }
+
+    public String buildPath(Context context) {
         SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         String base = mySharedPreferences.getString("prefBase",getString(R.string.base_val)).trim();
         String prefix = mySharedPreferences.getString("prefPrefix",getString(R.string.prefix_val)).trim();
@@ -77,7 +145,7 @@ public class MainActivity extends AppCompatActivity
                 .appendPath(project)
                 .appendPath(device)
                 .build();
-        new ParseURL().execute(new String[]{builtUri.toString()});
+        return builtUri.toString();
     }
 
     @Override
@@ -99,6 +167,7 @@ public class MainActivity extends AppCompatActivity
             Intent prefs = new Intent(getBaseContext(), SetPreferenceActivity.class);
             startActivityForResult(prefs, REQUEST_PREFS);
             run(this);
+            setAlarm(this);
             return true;
         }
         if (id == R.id.action_reboot) {
@@ -117,81 +186,6 @@ public class MainActivity extends AppCompatActivity
         return super.onOptionsItemSelected(item);
     }
 
-    public void download(String url, String desc, String title, String filename) {
-
-        SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        boolean external = mySharedPreferences.getBoolean("prefExternal",false);
-
-        if (!(EasyPermissions.hasPermissions(this, perms))) {
-            // Ask for both permissions
-            EasyPermissions.requestPermissions(this, getString(R.string.extWritePerm), RC_EXT_WRITE, perms);
-            //otherwise use app
-        }
-        if (!(EasyPermissions.hasPermissions(this, perms2))) {
-            // Ask for both permissions
-            EasyPermissions.requestPermissions(this, getString(R.string.extReadPerm), RC_EXT_READ, perms2);
-            //otherwise use app
-        }
-
-        String directory = mySharedPreferences.getString("prefDirectory",Environment.DIRECTORY_DOWNLOADS).trim();
-        if (!(directory.startsWith("/"))) {
-            directory = "/" + directory;
-        }
-        File direct = new File(Environment.getExternalStorageDirectory() + directory);
-
-        if (!direct.exists()) {
-            direct.mkdirs();
-        }
-        boolean fileExists = false;
-
-        //check to see if we already have the file
-        //this will make scheduling better
-        if (EasyPermissions.hasPermissions(this, perms2)) {
-            //have to assume we want to download the file if we can't check the dir
-            File f = new File(direct.getAbsolutePath());
-            File file[] = f.listFiles();
-            for (int i = 0; i < file.length; i++) {
-                if (filename.equals(file[i].getName())) {
-                    fileExists = true;
-                    Log.d(LOGTAG,filename+" exists");
-                }
-            }
-        }
-
-        if (!fileExists) {
-            if (external) {
-                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-
-                startActivity(intent);
-            } else if (EasyPermissions.hasPermissions(this, perms)) {
-                DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
-                request.setDescription(desc);
-                request.setTitle(title);
-
-                // in order for this if to run, you must use the android 3.2 to compile your app
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                    request.allowScanningByMediaScanner();
-                    request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-                }
-
-                boolean wifionly = mySharedPreferences.getBoolean("prefWIFI", true);
-                //Restrict the types of networks over which this download may proceed.
-                if (wifionly) {
-                    request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI);
-                } else {
-                    request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI | DownloadManager.Request.NETWORK_MOBILE);
-                }
-                //Set whether this download may proceed over a roaming connection.
-                request.setAllowedOverRoaming(false);
-                request.setDestinationInExternalPublicDir(directory, filename);
-
-                // get download service and enqueue file
-                DownloadManager manager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
-                manager.enqueue(request);
-            }
-        }
-    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
@@ -211,88 +205,11 @@ public class MainActivity extends AppCompatActivity
         // Some permissions have been denied
 
     }
-    private class ParseURL extends AsyncTask<String, Void, String> {
 
-
-        @Override
-        protected String doInBackground(String... strings) {
-            Log.d(LOGTAG, "Fetch: "+strings[0]);
-            ArrayList<String> urls = new ArrayList<String>();
-            try {
-
-                Document doc = Jsoup.connect(strings[0]).get();
-                //SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-                //String selector = mySharedPreferences.getString("prefSelector",getString(R.string.selector_val)).trim();
-                String selector = getString(R.string.selector_val);
-                Elements links = doc.select(selector);
-                for (Element link : links) {
-                    urls.add(link.attr("href"));
-                }
-            } catch (Throwable t) {
-                Log.e(LOGTAG,t.getMessage());
-            }
-
-            return urls.toString();
-        }
-
-
-        @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
-            String newS = s.substring(1,s.length()-1);
-            List<String> array = Arrays.asList(newS.split(","));
-
-            setList(array);
-
-        }
-    }
-
-    private class ParseURLDownload extends AsyncTask<String, Void, String> {
-
-
-        @Override
-        protected String doInBackground(String... strings) {
-            Log.d(LOGTAG, "Download parse: " +strings[0]);
-            ArrayList<String> urls = new ArrayList<String>();
-            try {
-
-                Document doc = Jsoup.connect(strings[0]).get();
-                //SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-                //String selector = mySharedPreferences.getString("prefSelector",getString(R.string.selector_val)).trim();
-                String selector = getString(R.string.selectorDL_val);
-                Elements links = doc.select(selector);
-                for (Element link : links) {
-                    urls.add(link.attr("href"));
-                }
-            } catch (Throwable t) {
-                Log.e(LOGTAG,t.getMessage());
-            }
-
-            return urls.toString();
-        }
-
-
-        @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
-            String newS = s.substring(1,s.length()-1);
-            List<String> array = Arrays.asList(newS.split(","));
-            String url ="";
-            for (String i : array) {
-                String prefix = "";
-                if (!(i.startsWith("http"))) {
-                    prefix = getString(R.string.base_val)+"/";
-                }
-                url = prefix+i;
-            }
-            if (!(url.isEmpty())){
-                int slash = url.lastIndexOf("/");
-                String filename = url.substring(slash+1);
-                Log.d(LOGTAG, "Downloading: "+url);
-                download(url, getString(R.string.app_name), filename, filename);
-            }
-
-        }
+    public String getBaseUrl() {
+        SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        String prefix = mySharedPreferences.getString("prefBase",getString(R.string.base_val)).trim()+"/";
+        return prefix;
     }
 
     public void setList(List<String> values)  {
@@ -333,8 +250,7 @@ public class MainActivity extends AppCompatActivity
 
             String prefix = "";
             if (!(i.startsWith("http"))) {
-                SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-                prefix = mySharedPreferences.getString("prefBase",getString(R.string.base_val)).trim()+"/";
+                prefix = getBaseUrl();
             }
             urls.add(prefix+i);
 
@@ -352,30 +268,21 @@ public class MainActivity extends AppCompatActivity
         mainListView.setAdapter( listAdapter );
 
         mainListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+          @Override
+          public void onItemClick(AdapterView<?> parent, final View view, int position, long id) {
 
-      @Override
-      public void onItemClick(AdapterView<?> parent, final View view,
-          int position, long id) {
+              String url = urls.get(position);
+              Context context = getBaseContext();
+              Intent service = new Intent(context, Download.class);
+              service.putExtra("url",url.toString());
+              service.putExtra("action",2);
+              context.startService(service);
 
-          String url = urls.get(position);
-          /*
-          SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-          boolean external = mySharedPreferences.getBoolean("prefExternal",false);
-          if (external) {
+              //new ParseURLDownload().execute(new String[]{url.toString()});
 
-              Intent intent = new Intent( Intent.ACTION_VIEW, Uri.parse(url));
-              intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
-              startActivity(intent);
-          } else{ */
-
-              new ParseURLDownload().execute(new String[]{url.toString()});
-
-          //}
-
-      }
-
-    });
+          }
+        });
     }
 
     	/**
@@ -427,4 +334,18 @@ public class MainActivity extends AppCompatActivity
 
 	  protected abstract ArrayList<String> getCommandsToExecute();
 	}
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        instance = this;
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        instance = null;
+    }
+
 }

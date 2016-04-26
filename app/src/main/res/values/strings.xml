@@ -14,6 +14,8 @@
     <string name="prefix_sum"></string>
     <string name="selector">Selector</string>
     <string name="selector_sum">JSoup select statement</string>
+    <string name="selectorDL">Selector for Download</string>
+    <string name="selectorDL_sum">JSoup select for retrieving the file</string>
     <string name="directory">Directory</string>
     <string name="directory_sum">Dir to download to</string>
     <string name="external_browser">External Browser</string>
@@ -23,4 +25,10 @@
     <string name="wifi_sum">Download only over WIFI</string>
     <string name="extWritePerm">External write permission required download file.</string>
     <string name="extReadPerm">External read permission required to identify existing downloads.</string>
+    <string name="dailydownload">Daily Download</string>
+    <string name="dailydownload_sum"></string>
+    <string name="hour">Hour</string>
+    <string name="hour_sum"></string>
+    <string name="minute">Minute</string>
+    <string name="minute_sum"></string>
 </resources>

@@ -12,8 +12,6 @@
             android:summary="@string/device_sum"
             android:defaultValue="@string/device_val"
             android:key="prefDevice"/>
-    </PreferenceCategory>
-    <PreferenceCategory android:title="@string/adv_set">
         <EditTextPreference
             android:title="@string/prefix"
             android:summary="@string/prefix_sum"
@@ -24,14 +22,25 @@
             android:summary="@string/directory_sum"
             android:defaultValue=""
             android:key="prefDirectory"/>
-
-<!--
+        <CheckBoxPreference
+            android:title="@string/dailydownload"
+            android:summary="@string/dailydownload_sum"
+            android:defaultValue="false"
+            android:key="prefDailyDownload" />
         <EditTextPreference
-            android:title="@string/base_url"
-            android:summary="@string/base_sum"
-            android:defaultValue="@string/base_val"
-            android:key="prefBase"/> -->
-
+            android:title="@string/hour"
+            android:summary="@string/hour_sum"
+            android:defaultValue="@string/hour_val"
+            android:key="prefHour"
+            android:dependency="prefDailyDownload" />
+        <EditTextPreference
+            android:title="@string/minute"
+            android:summary="@string/minute_sum"
+            android:defaultValue="@string/minute_val"
+            android:key="prefMinute"
+            android:dependency="prefDailyDownload" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/adv_set">
         <CheckBoxPreference
             android:title="@string/external_browser"
             android:summary="@string/external_sum"
@@ -44,12 +53,20 @@
             android:defaultValue="true"
             android:key="prefWIFI"
             android:dependency="prefExternal" />
-
-<!--
+        <EditTextPreference
+            android:title="@string/base_url"
+            android:summary="@string/base_sum"
+            android:defaultValue="@string/base_val"
+            android:key="prefBase"/>
         <EditTextPreference
             android:title="@string/selector"
             android:summary="@string/selector_sum"
             android:defaultValue="@string/selector_val"
-            android:key="prefSelector"/> -->
+            android:key="prefSelector"/>
+        <EditTextPreference
+            android:title="@string/selectorDL"
+            android:summary="@string/selectorDL_sum"
+            android:defaultValue="@string/selectorDL_val"
+            android:key="prefSelectorDL"/>
     </PreferenceCategory>
 </PreferenceScreen>

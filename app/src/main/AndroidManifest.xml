@@ -29,6 +29,8 @@
             android:theme="@style/AppTheme.NoActionBar"
             android:label="@string/action_settings">
         </activity>
+        <receiver android:name=".AlarmReceiver"></receiver>
+        <service android:name=".Download"></service>
     </application>
 
 </manifest>
