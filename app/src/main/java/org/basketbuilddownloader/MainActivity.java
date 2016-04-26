@@ -2,15 +2,11 @@ package org.basketbuilddownloader;
 
 import android.Manifest;
 import android.app.AlarmManager;
-import android.app.DownloadManager;
 import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
-import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
@@ -25,16 +21,10 @@ import android.widget.ArrayAdapter;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
-
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
