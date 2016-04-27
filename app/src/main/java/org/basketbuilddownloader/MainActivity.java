@@ -29,6 +29,13 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Todo
+ * on boot start alarm
+ * icon for dl manager
+ * cancel / pause for dl manager
+ */
+
 public class MainActivity extends AppCompatActivity
         implements EasyPermissions.PermissionCallbacks {
     private static final String LOGTAG = LogUtil
@@ -99,6 +106,7 @@ public class MainActivity extends AppCompatActivity
                 0, downloader, PendingIntent.FLAG_CANCEL_CURRENT);
         AlarmManager alarms = (AlarmManager) getSystemService(
                 Context.ALARM_SERVICE);
+        alarms.cancel(recurringDownload); //cancel any existing
         alarms.setInexactRepeating(AlarmManager.RTC_WAKEUP,
                 updateTime.getTimeInMillis(),
                 AlarmManager.INTERVAL_DAY, recurringDownload);
