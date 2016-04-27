@@ -19,8 +19,9 @@ public class BootReceiver extends BroadcastReceiver {
         String recievedAction = intent.getAction();
         if (recievedAction.contentEquals(Intent.ACTION_BOOT_COMPLETED)) {
             SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+            boolean daily = mySharedPreferences.getBoolean("prefDailyDownload",false);
             boolean prefAuto = mySharedPreferences.getBoolean("prefAuto", true);
-            if (prefAuto) {
+            if (prefAuto&&daily) {
                 setRecurringAlarm(context);
             }
         }
