@@ -28,7 +28,10 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
-import java.util.TimeZone;
+
+/**
+ * daktak
+ */
 
 public class MainActivity extends AppCompatActivity
         implements EasyPermissions.PermissionCallbacks {
@@ -100,6 +103,7 @@ public class MainActivity extends AppCompatActivity
                 0, downloader, PendingIntent.FLAG_CANCEL_CURRENT);
         AlarmManager alarms = (AlarmManager) getSystemService(
                 Context.ALARM_SERVICE);
+        alarms.cancel(recurringDownload); //cancel any existing
         alarms.setInexactRepeating(AlarmManager.RTC_WAKEUP,
                 updateTime.getTimeInMillis(),
                 AlarmManager.INTERVAL_DAY, recurringDownload);
@@ -204,31 +208,38 @@ public class MainActivity extends AppCompatActivity
 
     public void setList(List<String> values)  {
         ArrayList<String> names = new ArrayList<String>();
+        SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        String directory = mySharedPreferences.getString("prefDirectory",Environment.DIRECTORY_DOWNLOADS).trim();
+        if (!(directory.startsWith("/"))) {
+            directory = "/" + directory;
+        }
+        File direct = new File(Environment.getExternalStorageDirectory() + directory);
+
+        if (!direct.exists()) {
+            direct.mkdirs();
+        }
+        File file[] = new File[0];
+        if (EasyPermissions.hasPermissions(this, perms2)) {
+            File f = new File(direct.getAbsolutePath());
+            File file1[] = f.listFiles();
+            file = file1.clone();
+        }
 
         for (String i : values) {
             i = i.trim();
             int slash = i.lastIndexOf("/")+1;
             try {
                 String filename = i.substring(slash);
-                SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-                String directory = mySharedPreferences.getString("prefDirectory",Environment.DIRECTORY_DOWNLOADS).trim();
-                if (!(directory.startsWith("/"))) {
-                    directory = "/" + directory;
-                }
-                File direct = new File(Environment.getExternalStorageDirectory() + directory);
 
-                if (!direct.exists()) {
-                    direct.mkdirs();
-                }
                 if (EasyPermissions.hasPermissions(this, perms2)) {
-                    File f = new File(direct.getAbsolutePath());
-                    File file[] = f.listFiles();
+                    /*
                     for (int j = 0; j < file.length; j++) {
                         if (filename.equals(file[j].getName())) {
                             Log.d(LOGTAG,filename+" exists");
                             filename += " Have";
                         }
                     }
+                    */
                 }
 
                 names.add(filename);
@@ -249,10 +260,13 @@ public class MainActivity extends AppCompatActivity
         //newest on top
         Collections.reverse(urls);
         Collections.reverse(names);
+        String[] namesS = new String[names.size()];
+        namesS = names.toArray(namesS);
         // Find the ListView resource.
         ListView mainListView = (ListView) findViewById( R.id.listView );
 
-        ListAdapter listAdapter =  new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, names);
+        MyCustomAdapter listAdapter = new MyCustomAdapter(this, namesS, file);
+        //ListAdapter listAdapter =  new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, names);
 
         // Set the ArrayAdapter as the ListView's adapter.
         mainListView.setAdapter( listAdapter );
@@ -260,17 +274,20 @@ public class MainActivity extends AppCompatActivity
         mainListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
           @Override
           public void onItemClick(AdapterView<?> parent, final View view, int position, long id) {
-
-              String url = urls.get(position);
-              Context context = getBaseContext();
-              Intent service = new Intent(context, Download.class);
-              service.putExtra("url",url.toString());
-              service.putExtra("action",2);
-              context.startService(service);
-
-              //new ParseURLDownload().execute(new String[]{url.toString()});
+            if (view.isEnabled()) {
+                String url = urls.get(position);
+                Context context = getBaseContext();
+                Intent service = new Intent(context, Download.class);
+                service.putExtra("url", url.toString());
+                service.putExtra("action", 2);
+                context.startService(service);
 
 
+                //new ParseURLDownload().execute(new String[]{url.toString()});
+
+            } else {
+                Log.d(LOGTAG, "Entry disabled");
+            }
           }
         });
     }

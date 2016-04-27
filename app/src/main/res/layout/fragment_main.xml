@@ -8,5 +8,12 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="org.basketbuilddownloader.MainActivityFragment"
     tools:showIn="@layout/activity_main">
-
+    <ImageView
+        android:id="@+id/main_backgroundImage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:scaleType="fitCenter"
+        android:src="@drawable/trans"
+        android:layout_alignParentBottom="true" />
 </RelativeLayout>
