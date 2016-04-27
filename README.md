@@ -4,3 +4,5 @@
 ![Alt text](screenshots/aokp.png?raw=true "AOKP")
 
 For Pacman set device = Nightly, project = bacon, prefix = devs/CyanHacker
+
+Bitcoin donations 16VEzu37BePgR3o9hAciZkGK2VCAQFE28r
