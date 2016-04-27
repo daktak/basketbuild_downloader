@@ -42,7 +42,6 @@ public class BootReceiver extends BroadcastReceiver {
                 0, downloader, PendingIntent.FLAG_CANCEL_CURRENT);
         AlarmManager alarms = (AlarmManager) context.getSystemService(
                 Context.ALARM_SERVICE);
-        alarms.cancel(recurringDownload); //cancel any existing
         alarms.setInexactRepeating(AlarmManager.RTC_WAKEUP,
                 updateTime.getTimeInMillis(),
                 AlarmManager.INTERVAL_DAY, recurringDownload);

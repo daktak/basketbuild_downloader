@@ -104,7 +104,6 @@ public class MainActivity extends AppCompatActivity
                 0, downloader, PendingIntent.FLAG_CANCEL_CURRENT);
         AlarmManager alarms = (AlarmManager) getSystemService(
                 Context.ALARM_SERVICE);
-        alarms.cancel(recurringDownload); //cancel any existing
         alarms.setInexactRepeating(AlarmManager.RTC_WAKEUP,
                 updateTime.getTimeInMillis(),
                 AlarmManager.INTERVAL_DAY, recurringDownload);
@@ -286,7 +285,7 @@ public class MainActivity extends AppCompatActivity
                 service.putExtra("url", url.toString());
                 service.putExtra("action", 2);
                 context.startService(service);
-    
+
                 //new ParseURLDownload().execute(new String[]{url.toString()});
 
             } else {
