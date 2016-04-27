@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
@@ -210,8 +211,8 @@ public class MainActivity extends AppCompatActivity
         ArrayList<String> names = new ArrayList<String>();
         SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         String directory = mySharedPreferences.getString("prefDirectory",Environment.DIRECTORY_DOWNLOADS).trim();
-        boolean daily = mySharedPreferences.getBoolean("prefDailyDownload",false);
-        if (daily){
+        boolean external = mySharedPreferences.getBoolean("prefExternal",false);
+        if (external){
             directory = Environment.DIRECTORY_DOWNLOADS;
         }
         if (!(directory.startsWith("/"))) {
@@ -285,8 +286,7 @@ public class MainActivity extends AppCompatActivity
                 service.putExtra("url", url.toString());
                 service.putExtra("action", 2);
                 context.startService(service);
-
-
+    
                 //new ParseURLDownload().execute(new String[]{url.toString()});
 
             } else {
