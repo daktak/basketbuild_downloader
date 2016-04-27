@@ -21,6 +21,7 @@
             android:title="@string/directory"
             android:summary="@string/directory_sum"
             android:defaultValue=""
+            android:dependency="prefExternal"
             android:key="prefDirectory"/>
         <CheckBoxPreference
             android:title="@string/dailydownload"

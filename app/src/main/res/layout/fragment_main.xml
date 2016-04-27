@@ -15,5 +15,6 @@
         android:layout_alignParentTop="true"
         android:scaleType="fitCenter"
         android:src="@drawable/trans"
+        tools:ignore="ContentDescription"
         android:layout_alignParentBottom="true" />
 </RelativeLayout>
