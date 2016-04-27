@@ -1,17 +1,16 @@
 package org.basketbuilddownloader;
 
-
-import android.Manifest;
 import android.content.Context;
-import android.util.Log;
+import android.os.Build;
+import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.io.File;
+import java.lang.annotation.Target;
 
 public class MyCustomAdapter extends ArrayAdapter<String> {
     private final Context context;
@@ -29,22 +28,36 @@ public class MyCustomAdapter extends ArrayAdapter<String> {
     public View getView(int position, View convertView, ViewGroup parent) {
         LayoutInflater inflater = (LayoutInflater) context
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View rowView = inflater.inflate(R.layout.rowlayout, parent, false);
-        TextView textView = (TextView) rowView.findViewById(R.id.label);
-        //ImageView imageView = (ImageView) rowView.findViewById(R.id.icon);
-        textView.setText(values[position]);
-        // Change the icon for Windows and iPhone
+
+        ViewHolder holder;
+
+        if (convertView == null) {
+            convertView = inflater.inflate(R.layout.rowlayout, parent, false);
+            holder = new ViewHolder();
+            holder.text = (TextView) convertView.findViewById(R.id.label);
+            convertView.setTag(holder);
+        } else {
+            holder = (ViewHolder) convertView.getTag();
+        }
+
         String s = values[position];
+        holder.text.setText(s);
+
         for (int j = 0; j < file.length; j++) {
 
             if (s.equals(file[j].getName())) {
-                Log.w("BasketBuild","have file: "+s);
-                textView.setTextColor(R.color.disabledText);
-                rowView.setEnabled(false);
+                //Log.w("BasketBuild","have file: "+s);
+                holder.text.setTextColor(R.color.disabledText);
+                convertView.setEnabled(false);
             }
         }
 
 
-        return rowView;
+        return convertView;
     }
+
+    static class ViewHolder {
+        TextView text;
+    }
+
 }

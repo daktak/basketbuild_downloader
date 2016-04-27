@@ -10,7 +10,7 @@
         android:text="@+id/label"
         android:textColor="@color/colorBlack"
         android:textSize="20sp"
+        android:paddingTop="10sp"
         android:paddingBottom="10sp">
     </TextView>
-
 </LinearLayout>
