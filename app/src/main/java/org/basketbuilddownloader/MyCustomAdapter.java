@@ -1,6 +1,7 @@
 package org.basketbuilddownloader;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,28 +27,26 @@ public class MyCustomAdapter extends ArrayAdapter<String> {
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
         ViewHolder holder;
-
+        String s = values[position];
         if (convertView == null) {
             convertView = inflater.inflate(R.layout.rowlayout, parent, false);
             holder = new ViewHolder();
             holder.text = (TextView) convertView.findViewById(R.id.label);
             convertView.setTag(holder);
+            //Log.w("BasketBuild",s);
+            for (int j = 0; j < file.length; j++) {
+
+                if (s.equals(file[j].getName())) {
+                    //Log.w("BasketBuild","have file: "+s+ ":"+file[j] + " : "+ j+"pos:" + position);
+                    holder.text.setTextColor(R.color.disabledText);
+                    convertView.setEnabled(false);
+                }
+            }
         } else {
             holder = (ViewHolder) convertView.getTag();
         }
 
-        String s = values[position];
         holder.text.setText(s);
-
-        for (int j = 0; j < file.length; j++) {
-
-            if (s.equals(file[j].getName())) {
-                //Log.w("BasketBuild","have file: "+s);
-                holder.text.setTextColor(R.color.disabledText);
-                convertView.setEnabled(false);
-            }
-        }
-
 
         return convertView;
     }
