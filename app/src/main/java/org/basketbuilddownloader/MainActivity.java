@@ -30,10 +30,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Todo
- * on boot start alarm
- * icon for dl manager
- * cancel / pause for dl manager
+ * daktak
  */
 
 public class MainActivity extends AppCompatActivity

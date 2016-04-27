@@ -39,6 +39,12 @@
             android:defaultValue="@string/minute_val"
             android:key="prefMinute"
             android:dependency="prefDailyDownload" />
+        <CheckBoxPreference
+            android:title="@string/auto"
+            android:summary="@string/pref_auto"
+            android:defaultValue="true"
+            android:dependency="prefDailyDownload"
+            android:key="prefAuto" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/adv_set">
         <CheckBoxPreference
