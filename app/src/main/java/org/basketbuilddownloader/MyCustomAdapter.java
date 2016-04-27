@@ -1,16 +1,12 @@
 package org.basketbuilddownloader;
 
 import android.content.Context;
-import android.os.Build;
-import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
-
 import java.io.File;
-import java.lang.annotation.Target;
 
 public class MyCustomAdapter extends ArrayAdapter<String> {
     private final Context context;
