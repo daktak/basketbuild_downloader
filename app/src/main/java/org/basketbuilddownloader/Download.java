@@ -28,10 +28,6 @@ import java.util.List;
  * Created by daktak on 4/26/16.
  */
 public class Download extends Service {
-    String[] perms = {Manifest.permission.WRITE_EXTERNAL_STORAGE};
-    String[] perms2 = {Manifest.permission.READ_EXTERNAL_STORAGE};
-    private static final int RC_EXT_WRITE =1;
-    private static final int RC_EXT_READ=2;
 
     /** indicates how to behave if the service is killed */
     int mStartMode;
@@ -181,16 +177,16 @@ public class Download extends Service {
             if (!(url.isEmpty())){
                 int slash = url.lastIndexOf("/");
                 String filename = url.substring(slash+1);
-                Log.d(LOGTAG, "Downloading: "+url);
                 download(url, getString(R.string.app_name), filename, filename);
             }
 
         }
     }
     public void download(String url, String desc, String title, String filename) {
-
+        Log.d(LOGTAG, "Downloading: "+url);
         SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         boolean external = mySharedPreferences.getBoolean("prefExternal",false);
+
 /* cant request in service
         if (!(EasyPermissions.hasPermissions(this, perms))) {
             // Ask for both permissions
@@ -217,14 +213,13 @@ public class Download extends Service {
 
         //check to see if we already have the file
         //this will make scheduling better
-        if (EasyPermissions.hasPermissions(this, perms2)) {
+        if (EasyPermissions.hasPermissions(this, MainActivity.perms2)) {
             //have to assume we want to download the file if we can't check the dir
             File f = new File(direct.getAbsolutePath());
             File file[] = f.listFiles();
             for (int i = 0; i < file.length; i++) {
                 if (filename.equals(file[i].getName())) {
                     fileExists = true;
-                    Log.d(LOGTAG,filename+" exists");
                 }
             }
         }
@@ -235,7 +230,7 @@ public class Download extends Service {
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
                 startActivity(intent);
-            } else if (EasyPermissions.hasPermissions(this, perms)) {
+            } else if (EasyPermissions.hasPermissions(this, MainActivity.perms)) {
                 DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
                 request.setDescription(desc);
                 request.setTitle(title);
@@ -260,7 +255,11 @@ public class Download extends Service {
                 // get download service and enqueue file
                 DownloadManager manager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
                 manager.enqueue(request);
+            } else {
+                Log.d(LOGTAG, "fallout");
             }
+        } else {
+            Log.d(LOGTAG, "file-exists");
         }
     }
 

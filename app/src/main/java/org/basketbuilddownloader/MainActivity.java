@@ -38,8 +38,8 @@ public class MainActivity extends AppCompatActivity
         implements EasyPermissions.PermissionCallbacks {
     private static final String LOGTAG = LogUtil
             .makeLogTag(MainActivity.class);
-    String[] perms = {Manifest.permission.WRITE_EXTERNAL_STORAGE};
-    String[] perms2 = {Manifest.permission.READ_EXTERNAL_STORAGE};
+    public static String[] perms = {Manifest.permission.WRITE_EXTERNAL_STORAGE};
+    public static String[] perms2 = {Manifest.permission.READ_EXTERNAL_STORAGE};
     private static final int REQUEST_PREFS = 99;
     private static final int RC_EXT_WRITE =1;
     private static final int RC_EXT_READ=2;
