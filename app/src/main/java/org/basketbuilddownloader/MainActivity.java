@@ -89,6 +89,10 @@ public class MainActivity extends AppCompatActivity
             CancelAlarm(context);
         }
     }
+
+    public SharedPreferences getPref() {
+        return PreferenceManager.getDefaultSharedPreferences(this);
+    }
     public void setRecurringAlarm(Context context) {
 
         SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
