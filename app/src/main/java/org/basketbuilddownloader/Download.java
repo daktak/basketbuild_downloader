@@ -101,8 +101,7 @@ public class Download extends Service {
             i = i.trim();
             String prefix = "";
             if (!(i.startsWith("http"))) {
-                SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-                prefix = mySharedPreferences.getString("prefBase", getString(R.string.base_val)).trim() + "/";
+                prefix = getBaseUrl();
             }
             url = prefix + i;
         }
@@ -111,8 +110,7 @@ public class Download extends Service {
 
     public String getBaseUrl() {
         SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        String prefix = mySharedPreferences.getString("prefBase",getString(R.string.base_val)).trim()+"/";
-        return prefix;
+        return mySharedPreferences.getString("prefBase",getString(R.string.base_val)).trim()+"/";
     }
 
     public ArrayList<String> getDLUrl(String url){
@@ -183,83 +181,79 @@ public class Download extends Service {
         }
     }
     public void download(String url, String desc, String title, String filename) {
-        Log.d(LOGTAG, "Downloading: "+url);
         SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        boolean external = mySharedPreferences.getBoolean("prefExternal",false);
+        String selector = mySharedPreferences.getString("prefSelector", getString(R.string.selector_val)).trim();
+        String exten = selector.substring(0, selector.length() - 1);
 
-/* cant request in service
-        if (!(EasyPermissions.hasPermissions(this, perms))) {
-            // Ask for both permissions
-            EasyPermissions.requestPermissions(this, getString(R.string.extWritePerm), RC_EXT_WRITE, perms);
-            //otherwise use app
-        }
+        if (url.endsWith(exten)) {
 
-        if (!(EasyPermissions.hasPermissions(this, perms2))) {
-            // Ask for both permissions
-            EasyPermissions.requestPermissions(this, getString(R.string.extReadPerm), RC_EXT_READ, perms2);
-            //otherwise use app
-        }*/
+            Log.d(LOGTAG, "Downloading: " + url);
+            boolean external = mySharedPreferences.getBoolean("prefExternal", false);
 
-        String directory = mySharedPreferences.getString("prefDirectory", Environment.DIRECTORY_DOWNLOADS).trim();
-        if (!(directory.startsWith("/"))) {
-            directory = "/" + directory;
-        }
-        File direct = new File(Environment.getExternalStorageDirectory() + directory);
 
-        if (!direct.exists()) {
-            direct.mkdirs();
-        }
-        boolean fileExists = false;
+            String directory = mySharedPreferences.getString("prefDirectory", Environment.DIRECTORY_DOWNLOADS).trim();
+            if (!(directory.startsWith("/"))) {
+                directory = "/" + directory;
+            }
+            File direct = new File(Environment.getExternalStorageDirectory() + directory);
 
-        //check to see if we already have the file
-        //this will make scheduling better
-        if (EasyPermissions.hasPermissions(this, MainActivity.perms2)) {
-            //have to assume we want to download the file if we can't check the dir
-            File f = new File(direct.getAbsolutePath());
-            File file[] = f.listFiles();
-            for (int i = 0; i < file.length; i++) {
-                if (filename.equals(file[i].getName())) {
-                    fileExists = true;
+            if (!direct.exists()) {
+                direct.mkdirs();
+            }
+            boolean fileExists = false;
+
+            //check to see if we already have the file
+            //this will make scheduling better
+            if (EasyPermissions.hasPermissions(this, MainActivity.perms2)) {
+                //have to assume we want to download the file if we can't check the dir
+                File f = new File(direct.getAbsolutePath());
+                File file[] = f.listFiles();
+                for (int i = 0; i < file.length; i++) {
+                    if (filename.equals(file[i].getName())) {
+                        fileExists = true;
+                    }
                 }
             }
-        }
 
-        if (!fileExists) {
-            if (external) {
-                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            if (!fileExists) {
+                if (external) {
+                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
-                startActivity(intent);
-            } else if (EasyPermissions.hasPermissions(this, MainActivity.perms)) {
-                DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
-                request.setDescription(desc);
-                request.setTitle(title);
+                    startActivity(intent);
+                } else if (EasyPermissions.hasPermissions(this, MainActivity.perms)) {
+                    DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
+                    request.setDescription(desc);
+                    request.setTitle(title);
 
-                // in order for this if to run, you must use the android 3.2 to compile your app
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                    request.allowScanningByMediaScanner();
-                    request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-                }
+                    // in order for this if to run, you must use the android 3.2 to compile your app
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                        request.allowScanningByMediaScanner();
+                        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                    }
 
-                boolean wifionly = mySharedPreferences.getBoolean("prefWIFI", true);
-                //Restrict the types of networks over which this download may proceed.
-                if (wifionly) {
-                    request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI);
+                    boolean wifionly = mySharedPreferences.getBoolean("prefWIFI", true);
+                    //Restrict the types of networks over which this download may proceed.
+                    if (wifionly) {
+                        request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI);
+                    } else {
+                        request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI | DownloadManager.Request.NETWORK_MOBILE);
+                    }
+                    //Set whether this download may proceed over a roaming connection.
+                    request.setAllowedOverRoaming(false);
+                    request.setDestinationInExternalPublicDir(directory, filename);
+
+                    // get download service and enqueue file
+                    DownloadManager manager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+                    manager.enqueue(request);
                 } else {
-                    request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI | DownloadManager.Request.NETWORK_MOBILE);
+                    Log.d(LOGTAG, "fallout");
                 }
-                //Set whether this download may proceed over a roaming connection.
-                request.setAllowedOverRoaming(false);
-                request.setDestinationInExternalPublicDir(directory, filename);
-
-                // get download service and enqueue file
-                DownloadManager manager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
-                manager.enqueue(request);
             } else {
-                Log.d(LOGTAG, "fallout");
+                Log.d(LOGTAG, "file-exists");
             }
         } else {
-            Log.d(LOGTAG, "file-exists");
+            Log.d(LOGTAG, "Not downloading: " + url);
         }
     }
 
