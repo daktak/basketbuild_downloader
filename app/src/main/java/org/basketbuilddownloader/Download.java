@@ -183,7 +183,7 @@ public class Download extends Service {
     public void download(String url, String desc, String title, String filename) {
         SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         String selector = mySharedPreferences.getString("prefSelector", getString(R.string.selector_val)).trim();
-        String exten = selector.substring(0, selector.length() - 1);
+        String exten = selector.substring(selector.lastIndexOf("."), selector.length() - 1);
 
         if (url.endsWith(exten)) {
 
