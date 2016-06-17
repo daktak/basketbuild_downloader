@@ -17,12 +17,13 @@
             android:summary="@string/prefix_sum"
             android:defaultValue="@string/prefix_val"
             android:key="prefPrefix"/>
-        <EditTextPreference
+        <Preference
             android:title="@string/directory"
             android:summary="@string/directory_sum"
             android:defaultValue=""
             android:dependency="prefExternal"
-            android:key="prefDirectory"/>
+            android:key="prefDirectory" >
+        </Preference>
         <CheckBoxPreference
             android:title="@string/dailydownload"
             android:summary="@string/dailydownload_sum"

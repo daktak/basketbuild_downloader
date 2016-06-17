@@ -1,7 +1,12 @@
 package org.basketbuilddownloader;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.Preference;
 import android.preference.PreferenceFragment;
+import android.preference.PreferenceManager;
+import android.util.Log;
 
 
 /**
@@ -13,9 +18,29 @@ public class PrefsFragment extends PreferenceFragment {
     public void onCreate(Bundle savedInstanceState) {
         // TODO Auto-generated method stub
         super.onCreate(savedInstanceState);
-
         // Load the preferences from an XML resource
         addPreferencesFromResource(R.xml.settings);
+
+
+        Preference prefDir = findPreference("prefDirectory");
+
+        //prefDir.setIntent(i);
+        prefDir.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+            @Override
+            public boolean onPreferenceClick(Preference preference) {
+                Intent i = new Intent(getActivity(), DirectoryPicker.class);
+                /* If you set default dir , you can't navigate up!
+                SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+                String dir = mySharedPreferences.getString("prefDirectory",null);
+                i.putExtra(DirectoryPicker.START_DIR, dir);*/
+
+                startActivity(i);
+                return true;
+            }
+        });
+
+
+
     }
 
 }
