@@ -241,7 +241,7 @@ public class MainActivity extends AppCompatActivity
             int slash = i.lastIndexOf("/")+1;
             try {
                 String filename = i.substring(slash);
-
+                /*
                 if (EasyPermissions.hasPermissions(this, perms2)) {
                     /*
                     for (int j = 0; j < file.length; j++) {
@@ -250,8 +250,9 @@ public class MainActivity extends AppCompatActivity
                             filename += " Have";
                         }
                     }
-                    */
+
                 }
+                */
 
                 names.add(filename);
             } catch (Exception e){

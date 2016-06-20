@@ -8,8 +8,8 @@ android {
         applicationId "org.basketbuilddownloader"
         minSdkVersion 16
         targetSdkVersion 23
-        versionCode 5
-        versionName "0.2.2"
+        versionCode 6
+        versionName "0.2.3"
     }
     buildTypes {
         release {
@@ -29,7 +29,7 @@ dependencies {
 
 android {
     lintOptions {
-        disable 'TrustAllX509TrustManager','UnusedResources','GoogleAppIndexingWarning','ResourceAsColor'
+        disable 'TrustAllX509TrustManager','UnusedResources','GoogleAppIndexingWarning','ResourceAsColor','IconDipSize','IconLocation','IconMissingDensityFolder'
         checkReleaseBuilds false
     }
 }
