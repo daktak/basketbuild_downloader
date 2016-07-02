@@ -13,6 +13,8 @@ public class MyCustomAdapter extends ArrayAdapter<String> {
     private final Context context;
     private final String[] values;
     private final File[] file;
+    private static final String LOGTAG = LogUtil
+        .makeLogTag(MainActivity.class);
 
     public MyCustomAdapter(Context context, String[] values, File[] file) {
         super(context, R.layout.rowlayout, values);
@@ -32,15 +34,18 @@ public class MyCustomAdapter extends ArrayAdapter<String> {
             convertView = inflater.inflate(R.layout.rowlayout, parent, false);
             holder = new ViewHolder();
             holder.text = (TextView) convertView.findViewById(R.id.label);
-            convertView.setTag(holder);
-            //Log.w("BasketBuild",s);
-            for (int j = 0; j < file.length; j++) {
+            convertView.setTag(holder);//Log.w("BasketBuild",s);
+            try {
+                for (int j = 0; j < file.length; j++) {
 
-                if (s.equals(file[j].getName())) {
-                    //Log.w("BasketBuild","have file: "+s+ ":"+file[j] + " : "+ j+"pos:" + position);
-                    holder.text.setTextColor(R.color.disabledText);
-                    convertView.setEnabled(false);
+                    if (s.equals(file[j].getName())) {
+                        //Log.w("BasketBuild","have file: "+s+ ":"+file[j] + " : "+ j+"pos:" + position);
+                        holder.text.setTextColor(R.color.disabledText);
+                        convertView.setEnabled(false);
+                    }
                 }
+            } catch (Exception e) {
+                Log.w(LOGTAG, "Cant "+e.getMessage());
             }
         } else {
             holder = (ViewHolder) convertView.getTag();
