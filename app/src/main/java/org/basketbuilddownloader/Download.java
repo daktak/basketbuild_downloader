@@ -132,7 +132,7 @@ public class Download extends Service {
         try {
 
             Document doc = Jsoup.connect(url).timeout(10*1000).get();
-            Document doc1 = doc.clone();
+
             SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
             String selector = mySharedPreferences.getString("prefSelectorDL",getString(R.string.selectorDL_val)).trim();
             //String selector = getString(R.string.selectorDL_val);
@@ -140,16 +140,19 @@ public class Download extends Service {
             for (Element link : links) {
                 urls.add(link.attr("href"));
             }
+
             String md5Sel = getString(R.string.md5_selector_val);
-            Elements sel = doc1.select(md5Sel);
-            String block = sel.get(0).data();
 
-            Log.w(LOGTAG, ":" + block + ":");
+            Elements sel = doc.select(md5Sel);
+            String block = sel.get(0).html();
+            String md5start = "MD5:</strong>";
+            block = block.substring(block.indexOf(md5start)+md5start.length());
+            block = block.substring(0,block.indexOf("<"));
+            block = block.trim();
 
-            Log.w(LOGTAG, ":" + block.indexOf("MD5: ") + ":");
-            Log.w(LOGTAG, ":" + block.indexOf("Developer: ") + ":");
-            block = block.substring(block.indexOf("MD5: ") + 5, block.indexOf(" Developer"));
-            Log.w(LOGTAG, ":" + block + ":");
+            int slash = url.lastIndexOf("/");
+            String filename = url.substring(slash + 1);
+            writeFile(filename+".md5", block);
 
         } catch (Throwable t) {
             Log.e(LOGTAG,t.getMessage());

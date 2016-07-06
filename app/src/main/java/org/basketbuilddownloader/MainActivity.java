@@ -334,6 +334,7 @@ public class MainActivity extends AppCompatActivity
         //newest on top
         Collections.reverse(urls);
         Collections.reverse(names);
+        Collections.reverse(md5check);
         String[] namesS = new String[names.size()];
         namesS = names.toArray(namesS);
         // Find the ListView resource.
