@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="md5_selector_val" translatable="false">div[class=panel-body]:contains(MD5)</string>
     <string name="selector_val" translatable="false">a[itemprop=downloadUrl][href$=.zip]</string>
     <string name="selectorDL_val" translatable="false">a[href$=.zip][class=btn btn-primary][rel=nofollow]</string>
     <string name="base_val" translatable="false">https://s.basketbuild.com</string>

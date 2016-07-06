@@ -34,4 +34,5 @@
     <string name="pref_auto">Ensure Daily Download is scheduled after boot</string>
     <string name="auto">Auto Start</string>
     <string name="choose">Choose</string>
+    <string name="imgdesc">MD5 indicator</string>
 </resources>
