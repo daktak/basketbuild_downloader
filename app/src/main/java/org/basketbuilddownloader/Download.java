@@ -20,6 +20,8 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -113,12 +115,24 @@ public class Download extends Service {
         return mySharedPreferences.getString("prefBase",getString(R.string.base_val)).trim()+"/";
     }
 
+    public void writeFile(String name, String body){
+        try {
+            FileOutputStream fileout = openFileOutput(name, MODE_PRIVATE);
+            OutputStreamWriter outputWriter = new OutputStreamWriter(fileout);
+            outputWriter.write(body);
+            outputWriter.close();
+        } catch (Exception e) {
+            Log.w(LOGTAG, "Unable to write: "+name);
+        }
+    }
+
     public ArrayList<String> getDLUrl(String url){
         Log.d(LOGTAG, "Download parse: " +url);
         ArrayList<String> urls = new ArrayList<String>();
         try {
 
             Document doc = Jsoup.connect(url).timeout(10*1000).get();
+
             SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
             String selector = mySharedPreferences.getString("prefSelectorDL",getString(R.string.selectorDL_val)).trim();
             //String selector = getString(R.string.selectorDL_val);
@@ -126,6 +140,20 @@ public class Download extends Service {
             for (Element link : links) {
                 urls.add(link.attr("href"));
             }
+
+            String md5Sel = getString(R.string.md5_selector_val);
+
+            Elements sel = doc.select(md5Sel);
+            String block = sel.get(0).html();
+            String md5start = "MD5:</strong>";
+            block = block.substring(block.indexOf(md5start)+md5start.length());
+            block = block.substring(0,block.indexOf("<"));
+            block = block.trim();
+
+            int slash = url.lastIndexOf("/");
+            String filename = url.substring(slash + 1);
+            writeFile(filename+".md5", block);
+
         } catch (Throwable t) {
             Log.e(LOGTAG,t.getMessage());
         }
