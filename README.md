@@ -4,6 +4,11 @@ Stable versions are available through F-Droid:
 <a href="https://f-droid.org/repository/browse/?fdid=org.basketbuilddownloader"><img
       alt="Available on F-Droid" height="45" src="https://raw.githubusercontent.com/daktak/androidpn-client/master/screenshots/fdroid.png" /></a>
 
+## MD5
+* Green - verified
+* Red - Incorrect or in progress download
+* Grey - Unable to determine
+
 ![Alt text](screenshots/pacman.png?raw=true "Pacman")
 ![Alt text](screenshots/cyan.png?raw=true "CyanHacker")
 ![Alt text](screenshots/aokp.png?raw=true "AOKP")
