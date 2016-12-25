@@ -188,6 +188,9 @@ public class MainActivity extends AppCompatActivity
             e.execute();
             return true;
         }
+        if (id == R.id.action_refresh) {
+            run(this);
+        }
 
         return super.onOptionsItemSelected(item);
     }
