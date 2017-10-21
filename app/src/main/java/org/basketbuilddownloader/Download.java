@@ -153,7 +153,8 @@ public class Download extends Service {
 
             int slash = url.lastIndexOf("/");
             String filename = URLDecoder.decode(url.substring(slash + 1));
-            writeFile(filename+".md5", block);
+	    String md5_ext = getString(R.string.md5_ext);
+            writeFile(filename + md5_ext, block);
 
         } catch (Throwable t) {
             Log.e(LOGTAG,t.getMessage());
