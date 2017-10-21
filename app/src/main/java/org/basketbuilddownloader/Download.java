@@ -25,6 +25,7 @@ import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.net.URLDecoder;
 
 /**
  * Created by daktak on 4/26/16.
@@ -151,7 +152,7 @@ public class Download extends Service {
             block = block.trim();
 
             int slash = url.lastIndexOf("/");
-            String filename = url.substring(slash + 1);
+            String filename = URLDecoder.decode(url.substring(slash + 1));
             writeFile(filename+".md5", block);
 
         } catch (Throwable t) {
