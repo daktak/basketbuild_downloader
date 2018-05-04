@@ -15,4 +15,6 @@ Stable versions are available through F-Droid:
 
 For Pacman set device = Nightly, project = bacon, prefix = devs/CyanHacker
 
+![Travis CI](https://travis-ci.org/daktak/androidpn-client.svg?branch=master)
+
 Bitcoin donations 16VEzu37BePgR3o9hAciZkGK2VCAQFE28r
