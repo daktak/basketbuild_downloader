@@ -9,9 +9,9 @@ Stable versions are available through F-Droid:
 * Red - Incorrect or in progress download
 * Grey - Unable to determine
 
-![Alt text](screenshots/pacman.png?raw=true "Pacman")
-![Alt text](screenshots/cyan.png?raw=true "CyanHacker")
-![Alt text](screenshots/aokp.png?raw=true "AOKP")
+![Alt text](fastlane/metadata/android/en-US/phoneScreenshots/pacman.png?raw=true "Pacman")
+![Alt text](fastlane/metadata/android/en-US/phoneScreenshots/cyan.png?raw=true "CyanHacker")
+![Alt text](fastlane/metadata/android/en-US/phoneScreenshots/aokp.png?raw=true "AOKP")
 
 For Pacman set device = Nightly, project = bacon, prefix = devs/CyanHacker
 
