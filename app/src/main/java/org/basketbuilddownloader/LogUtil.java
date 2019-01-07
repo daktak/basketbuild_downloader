@@ -15,13 +15,13 @@
  */
 package org.basketbuilddownloader;
 
-/** 
+/**
  * Utility class for LogCat.
  *
  * @author Sehwan Noh (devnoh@gmail.com)
  */
 public class LogUtil {
-    
+
     @SuppressWarnings("unchecked")
     public static String makeLogTag(Class cls) {
         return "BasketBuild_" + cls.getSimpleName();

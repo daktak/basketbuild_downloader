@@ -18,7 +18,6 @@ package org.basketbuilddownloader;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.support.annotation.StringRes;
 import android.support.v4.app.ActivityCompat;
@@ -72,9 +71,7 @@ public class EasyPermissions {
      * Request a set of permissions, showing rationale if the system requests it.
      *
      * @param object      Activity or Fragment requesting permissions. Should implement
-     *                    {@link android.support.v4.app.ActivityCompat.OnRequestPermissionsResultCallback}
-     *                    or
-     *                    {@link android.support.v13.app.FragmentCompat.OnRequestPermissionsResultCallback}
+     *                    {@link ActivityCompat.OnRequestPermissionsResultCallback}
      * @param rationale   a message explaining why the application needs this set of permissions, will
      *                    be displayed if the user rejects the request the first time.
      * @param requestCode request code to track this request, must be < 256.
@@ -92,9 +89,7 @@ public class EasyPermissions {
      * Request a set of permissions, showing rationale if the system requests it.
      *
      * @param object         Activity or Fragment requesting permissions. Should implement
-     *                       {@link android.support.v4.app.ActivityCompat.OnRequestPermissionsResultCallback}
-     *                       or
-     *                       {@link android.support.v13.app.FragmentCompat.OnRequestPermissionsResultCallback}
+     *                       {@link ActivityCompat.OnRequestPermissionsResultCallback}
      * @param rationale      a message explaining why the application needs this set of permissions, will
      *                       be displayed if the user rejects the request the first time.
      * @param positiveButton custom text for positive button
@@ -118,19 +113,13 @@ public class EasyPermissions {
         if (shouldShowRationale) {
             AlertDialog dialog = new AlertDialog.Builder(getActivity(object))
                     .setMessage(rationale)
-                    .setPositiveButton(positiveButton, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            executePermissionsRequest(object, perms, requestCode);
-                        }
+                    .setPositiveButton(positiveButton, (dialog1, which) ->
+                            executePermissionsRequest(object, perms, requestCode))
+                    .setNegativeButton(negativeButton, (dialog12, which) -> {
+                        // act as if the permissions were denied
+                        callbacks.onPermissionsDenied(requestCode, Arrays.asList(perms));
                     })
-                    .setNegativeButton(negativeButton, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            // act as if the permissions were denied
-                            callbacks.onPermissionsDenied(requestCode, Arrays.asList(perms));
-                        }
-                    }).create();
+                    .create();
             dialog.show();
         } else {
             executePermissionsRequest(object, perms, requestCode);
@@ -139,7 +128,7 @@ public class EasyPermissions {
 
     /**
      * Handle the result of a permission request, should be called from the calling Activity's
-     * {@link android.support.v4.app.ActivityCompat.OnRequestPermissionsResultCallback#onRequestPermissionsResult(int, String[], int[])}
+     * {@link ActivityCompat.OnRequestPermissionsResultCallback#onRequestPermissionsResult(int, String[], int[])}
      * method.
      * <p/>
      * If any permissions were granted or denied, the Activity will receive the appropriate
