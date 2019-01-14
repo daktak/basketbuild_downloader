@@ -1,6 +1,5 @@
 package org.basketbuilddownloader;
 
-import android.Manifest;
 import android.app.DownloadManager;
 import android.app.Service;
 import android.content.Context;
@@ -8,7 +7,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Environment;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
@@ -22,34 +20,41 @@ import org.jsoup.select.Elements;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.net.URLDecoder;
 
 /**
  * Created by daktak on 4/26/16.
  */
 public class Download extends Service {
 
-    /** indicates how to behave if the service is killed */
+    /**
+     * indicates how to behave if the service is killed
+     */
     int mStartMode;
-    /** interface for clients that bind */
+    /**
+     * interface for clients that bind
+     */
     IBinder mBinder;
-    /** indicates whether onRebind should be used */
+    /**
+     * indicates whether onRebind should be used
+     */
     boolean mAllowRebind;
     private static final String LOGTAG = LogUtil
             .makeLogTag(Download.class);
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         String url = intent.getStringExtra("url");
-        int action = intent.getIntExtra("action",1);
+        int action = intent.getIntExtra("action", 1);
         if (action == 1) {
-            new ParseURL().execute(new String[]{url});
-        } else if (action ==2 ){
-            new ParseURLDownload().execute(new String[]{url});
+            new ParseURL().execute(url);
+        } else if (action == 2) {
+            new ParseURLDownload().execute(url);
         } else if (action == 3) {
-            new downloadFirstThread().execute(new String[]{url});
+            new downloadFirstThread().execute(url);
         }
 
         return Service.START_NOT_STICKY;
@@ -70,7 +75,7 @@ public class Download extends Service {
         @Override
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
-            String newS = s.substring(1,s.length()-1);
+            String newS = s.substring(1, s.length() - 1);
             List<String> array = Arrays.asList(newS.split(","));
             if (MainActivity.instance != null) {
                 MainActivity.instance.setList(array);
@@ -79,26 +84,25 @@ public class Download extends Service {
     }
 
     public String parseUrl(String url) {
-        Log.d(LOGTAG, "Fetch: "+url);
-        ArrayList<String> urls = new ArrayList<String>();
+        Log.d(LOGTAG, "Fetch: " + url);
+        ArrayList<String> urls = new ArrayList<>();
         try {
-
-            Document doc = Jsoup.connect(url).timeout(10*1000).get();
+            Document doc = Jsoup.connect(url).timeout(10 * 1000).get();
             SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-            String selector = mySharedPreferences.getString("prefSelector",getString(R.string.selector_val)).trim();
+            String selector = mySharedPreferences.getString("prefSelector", getString(R.string.selector_val)).trim();
             //String selector = getString(R.string.selector_val);
             Elements links = doc.select(selector);
             for (Element link : links) {
                 urls.add(link.attr("href"));
             }
         } catch (Throwable t) {
-            Log.e(LOGTAG,t.getMessage());
+            Log.e(LOGTAG, t.getMessage());
         }
 
         return urls.toString();
     }
 
-    public String getFirstUrl(List<String> array){
+    public String getFirstUrl(List<String> array) {
         String url = "";
         for (String i : array) {
             i = i.trim();
@@ -113,29 +117,28 @@ public class Download extends Service {
 
     public String getBaseUrl() {
         SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        return mySharedPreferences.getString("prefBase",getString(R.string.base_val)).trim()+"/";
+        return mySharedPreferences.getString("prefBase", getString(R.string.base_val)).trim() + "/";
     }
 
-    public void writeFile(String name, String body){
+    public void writeFile(String name, String body) {
         try {
             FileOutputStream fileout = openFileOutput(name, MODE_PRIVATE);
             OutputStreamWriter outputWriter = new OutputStreamWriter(fileout);
             outputWriter.write(body);
             outputWriter.close();
         } catch (Exception e) {
-            Log.w(LOGTAG, "Unable to write: "+name);
+            Log.w(LOGTAG, "Unable to write: " + name);
         }
     }
 
-    public ArrayList<String> getDLUrl(String url){
-        Log.d(LOGTAG, "Download parse: " +url);
-        ArrayList<String> urls = new ArrayList<String>();
+    public ArrayList<String> getDLUrl(String url) {
+        Log.d(LOGTAG, "Download parse: " + url);
+        ArrayList<String> urls = new ArrayList<>();
         try {
-
-            Document doc = Jsoup.connect(url).timeout(10*1000).get();
+            Document doc = Jsoup.connect(url).timeout(10 * 1000).get();
 
             SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-            String selector = mySharedPreferences.getString("prefSelectorDL",getString(R.string.selectorDL_val)).trim();
+            String selector = mySharedPreferences.getString("prefSelectorDL", getString(R.string.selectorDL_val)).trim();
             //String selector = getString(R.string.selectorDL_val);
             Elements links = doc.select(selector);
             for (Element link : links) {
@@ -147,17 +150,17 @@ public class Download extends Service {
             Elements sel = doc.select(md5Sel);
             String block = sel.get(0).html();
             String md5start = "MD5:</strong>";
-            block = block.substring(block.indexOf(md5start)+md5start.length());
-            block = block.substring(0,block.indexOf("<"));
+            block = block.substring(block.indexOf(md5start) + md5start.length());
+            block = block.substring(0, block.indexOf("<"));
             block = block.trim();
 
             int slash = url.lastIndexOf("/");
             String filename = URLDecoder.decode(url.substring(slash + 1));
-	    String md5_ext = getString(R.string.md5_ext);
+            String md5_ext = getString(R.string.md5_ext);
             writeFile(filename + md5_ext, block);
 
         } catch (Throwable t) {
-            Log.e(LOGTAG,t.getMessage());
+            Log.e(LOGTAG, t.getMessage());
         }
 
         return urls;
@@ -173,14 +176,15 @@ public class Download extends Service {
         @Override
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
-            String newS = s.substring(1,s.length()-1);
+            String newS = s.substring(1, s.length() - 1);
             List<String> array = Arrays.asList(newS.split(","));
 
             String url = getFirstUrl(array);
-            new ParseURLDownload().execute(new String[]{url.toString()});
+            new ParseURLDownload().execute(url);
 
         }
     }
+
     private class ParseURLDownload extends AsyncTask<String, Void, String> {
 
         @Override
@@ -192,24 +196,25 @@ public class Download extends Service {
         @Override
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
-            String newS = s.substring(1,s.length()-1);
-            List<String> array = Arrays.asList(newS.split(","));
-            String url ="";
+            String newS = s.substring(1, s.length() - 1);
+            String[] array = newS.split(",");
+            String url = "";
             for (String i : array) {
                 String prefix = "";
                 if (!(i.startsWith("http"))) {
                     prefix = getBaseUrl();
                 }
-                url = prefix+i;
+                url = prefix + i;
             }
-            if (!(url.isEmpty())){
+            if (!(url.isEmpty())) {
                 int slash = url.lastIndexOf("/");
-                String filename = url.substring(slash+1);
+                String filename = url.substring(slash + 1);
                 download(url, getString(R.string.app_name), filename, filename);
             }
 
         }
     }
+
     public void download(String url, String desc, String title, String filename) {
         SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         String selector = mySharedPreferences.getString("prefSelector", getString(R.string.selector_val)).trim();
@@ -238,8 +243,8 @@ public class Download extends Service {
                 //have to assume we want to download the file if we can't check the dir
                 File f = new File(direct.getAbsolutePath());
                 File file[] = f.listFiles();
-                for (int i = 0; i < file.length; i++) {
-                    if (filename.equals(file[i].getName())) {
+                for (File aFile : file) {
+                    if (filename.equals(aFile.getName())) {
                         fileExists = true;
                     }
                 }
@@ -257,17 +262,16 @@ public class Download extends Service {
                     request.setTitle(title);
 
                     // in order for this if to run, you must use the android 3.2 to compile your app
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                        request.allowScanningByMediaScanner();
-                        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-                    }
+                    request.allowScanningByMediaScanner();
+                    request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
 
                     boolean wifionly = mySharedPreferences.getBoolean("prefWIFI", true);
                     //Restrict the types of networks over which this download may proceed.
                     if (wifionly) {
                         request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI);
                     } else {
-                        request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI | DownloadManager.Request.NETWORK_MOBILE);
+                        request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI
+                                | DownloadManager.Request.NETWORK_MOBILE);
                     }
                     //Set whether this download may proceed over a roaming connection.
                     request.setAllowedOverRoaming(false);
@@ -286,5 +290,4 @@ public class Download extends Service {
             Log.d(LOGTAG, "Not downloading: " + url);
         }
     }
-
 }

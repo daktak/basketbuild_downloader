@@ -19,9 +19,9 @@ public class BootReceiver extends BroadcastReceiver {
         String recievedAction = intent.getAction();
         if (recievedAction.contentEquals(Intent.ACTION_BOOT_COMPLETED)) {
             SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-            boolean daily = mySharedPreferences.getBoolean("prefDailyDownload",false);
+            boolean daily = mySharedPreferences.getBoolean("prefDailyDownload", false);
             boolean prefAuto = mySharedPreferences.getBoolean("prefAuto", true);
-            if (prefAuto&&daily) {
+            if (prefAuto && daily) {
                 setRecurringAlarm(context);
             }
         }
@@ -30,7 +30,7 @@ public class BootReceiver extends BroadcastReceiver {
     public void setRecurringAlarm(Context context) {
 
         SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-        int hour =  Integer.parseInt(mySharedPreferences.getString("prefHour", context.getString(R.string.hour_val)));
+        int hour = Integer.parseInt(mySharedPreferences.getString("prefHour", context.getString(R.string.hour_val)));
         int minute = Integer.parseInt(mySharedPreferences.getString("prefMinute", context.getString(R.string.minute_val)));
         Calendar updateTime = Calendar.getInstance();
         //updateTime.setTimeZone(TimeZone.getTimeZone("GMT"));
@@ -45,7 +45,5 @@ public class BootReceiver extends BroadcastReceiver {
         alarms.setInexactRepeating(AlarmManager.RTC_WAKEUP,
                 updateTime.getTimeInMillis(),
                 AlarmManager.INTERVAL_DAY, recurringDownload);
-
     }
-
 }
